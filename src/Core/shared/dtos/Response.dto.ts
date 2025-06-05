@@ -1,5 +1,4 @@
-
-export interface ResponseDto<T> {
+export default interface ResponseDto<T> {
     timestamp?: Date;
     requestId?: string;
     clientIp?:  string;
@@ -9,4 +8,3 @@ export interface ResponseDto<T> {
     message: string;
     data?: T;
 }
-    

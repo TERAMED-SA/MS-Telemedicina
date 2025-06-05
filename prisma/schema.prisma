@@ -6,10 +6,44 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// enums
+enum PaymentType {
+  RECORRENTE
+  UNICO
+}
+
+enum ServiceType {
+  CLINICO
+  EXAME
+  OUTRO
+}
+
+// model
+model Recipient {
+  id             Int          @id @default(autoincrement())
+  externalUserId Int
+  uuid           String       @unique
+  name           String
+  cpf            String       @unique
+  birthday       String
+  phone          String
+  email          String       @unique
+  zipCode        String
+  address        String
+  city           String
+  state          String
+  paymentType    PaymentType
+  serviceType    ServiceType
+  holder         String?      
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  isActive       Boolean      @default(true)
 }
