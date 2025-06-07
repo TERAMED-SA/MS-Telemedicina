@@ -7,7 +7,7 @@ export class AppController {
 
   @Post('/beneficiary')
   async createBeneficiary(@Body('userId') userId: string, @Body('subscriptionId') subscriptionId: string) {
-    return await this.createBeneficiary(userId, subscriptionId);
+    return await this.telemedicineFeature.createBeneficiary({ subscriptionId, userId: Number(userId) });
   }
 
   @Post('/telemedicine/appointments/:userId/enter')
