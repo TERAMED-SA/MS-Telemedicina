@@ -52,25 +52,3 @@ export const PackageBrokerEnvelopeSchema = z.object({
   Host: HostSchema,
 });
 
-
-export const SubscriptionStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'CANCELED', 'EXPIRED', 'PENDING']);
-export const PaymentMethodEnum = z.enum(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'PAYPAL', 'PIX', 'OTHER']);
-
-export const SubscriptionResponseSchema = z.object({
-  id: z.string(),
-  packageId: z.string(),
-  userId: z.string(),
-  status: SubscriptionStatusEnum,
-  startDate: z.string(),
-  endDate: z.string(),
-  renewsAt: z.string(),
-  canceledAt: z.string(),
-  paymentMethod: PaymentMethodEnum,
-  paymentMethodDetails: z.record(z.unknown()),
-  paymentTransactionId: z.string(),
-  paymentTransactionStatus: z.string(),
-  externalRef: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  package: PackageBrokerEnvelopeSchema,
-});

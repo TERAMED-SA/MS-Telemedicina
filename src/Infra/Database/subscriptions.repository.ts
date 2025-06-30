@@ -1,9 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, Subscription } from 'src/Infrastructure/Database/generated';
+import { PrismaService } from '../Providers/Prisma/prisma.service';
+import { Subscription } from '@prisma/client';
 
 @Injectable()
 export class SubscriptionReadRepository {
-  private prisma = new PrismaClient();
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(subscription: Subscription): Promise<Subscription> {
+    const { paymentMethodDetails, ...rest } = subscription;
+    return this.prisma.subscription.create({
+      data: {
+        ...rest,
+        paymentMethodDetails: paymentMethodDetails === null ? { equals: null } : paymentMethodDetails as any
+      }
+    });
+  }
 
   async findAll(): Promise<Subscription[]> {
     return this.prisma.subscription.findMany();

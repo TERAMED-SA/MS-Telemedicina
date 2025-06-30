@@ -1,89 +1,55 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { SubscriptionResponseDTO } from '../dtos/subscription.dto';
-import { ValidateDto } from '../helpers/validate-subscription-message-dto';
-import { SubscriptionResponseSchema } from '../dtos/schema';
-import { PrismaClient } from 'src/Infrastructure/Database/generated';
-
-interface ISubscriptionBrokerMessage {
-  type: 'create:subscription' | 'update:subscription' | 'cancel:subscription' | 'activate:subscription';
-  data: SubscriptionResponseDTO;
-}
+import { SubscriptionEnvelopeDTO } from '../dtos/dto';
+import { SubscriptionEnvelopeSchema } from '../dtos/schema2';
+import { SubscriptionReadRepository } from 'src/Infra/Database/subscriptions.repository';
 
 @Injectable()
 export class SubscriptionConsumerService implements OnModuleInit {
-  private prisma = new PrismaClient();
-
-  constructor(private readonly amqpConnection: AmqpConnection) { }
+  constructor(
+    private readonly amqpConnection: AmqpConnection,
+    private readonly subscriptionRepository: SubscriptionReadRepository
+  ) {}
 
   async onModuleInit() {
     this.amqpConnection.createSubscriber(
-      async (msg: ISubscriptionBrokerMessage) => {
-        const result = ValidateDto<ISubscriptionBrokerMessage>(
-          msg,
-          SubscriptionResponseSchema
-        );
+      async (msg: SubscriptionEnvelopeDTO) => {
+        console.log('📩 Subscription message received:', msg);
 
-        if (!result.isValid && !result.data) {
-          console.error('Invalid message received:', result.error);
+        const result = SubscriptionEnvelopeSchema.safeParse(msg);
+        if (!result.success) {
+          console.error('❌ Mensagem inválida:', result.error.format());
           return;
         }
 
-        if (!result.data) {
-          console.error('No data found in message:', msg);
-          return;
-        }
+        const subscription = result.data.Message.Content;
 
-        const { data, type } = result.data;
-
-        if (type === 'create:subscription') {
-          const { package: _package, ...subscriptionData } = data;
-          await this.prisma.subscription.create({
-            data: {
-              ...subscriptionData,
-              paymentMethodDetails: subscriptionData.paymentMethodDetails
-                ? JSON.stringify(subscriptionData.paymentMethodDetails)
-                : undefined
-            }
+        try {
+          await this.subscriptionRepository.create({
+            id: subscription.Id,
+            packageId: subscription.PackageId,
+            userId: subscription.UserId ?? null,
+            status: String(subscription.Status),
+            startDate: new Date(subscription.StartDate),
+            endDate: subscription.EndDate ? new Date(subscription.EndDate) : null,
+            renewsAt: subscription.RenewsAt ? new Date(subscription.RenewsAt) : null,
+            canceledAt: subscription.CanceledAt ? new Date(subscription.CanceledAt) : null,
+            paymentMethod: String(subscription.PaymentMethod),
+            paymentMethodDetails: subscription.PaymentMethodDetails ?? null,
+            paymentTransactionId: subscription.PaymentTransactionId ?? null,
+            paymentTransactionStatus: subscription.PaymentTransactionStatus ?? null,
+            externalRef: subscription.ExternalRef ?? null,
+            createdAt: new Date(subscription.CreatedAt),
+            updatedAt: new Date(subscription.UpdatedAt),
           });
-        }
 
-        if (type === 'update:subscription' && data.id) {
-          const { package: _package, ...subscriptionData } = data;
-          await this.prisma.subscription.update({
-            where: { id: data.id },
-            data: {
-              ...subscriptionData,
-              paymentMethodDetails: subscriptionData.paymentMethodDetails
-                ? JSON.stringify(subscriptionData.paymentMethodDetails)
-                : undefined
-            }
-          });
-        }
-
-        if (type === 'cancel:subscription' && data.id) {
-          await this.prisma.subscription.update({
-            where: { id: data.id },
-            data: {
-              status: 'CANCELED',
-              canceledAt: new Date().toISOString()
-            }
-          });
-        }
-
-        if (type === 'activate:subscription' && data.id) {
-          await this.prisma.subscription.update({
-            where: { id: data.id },
-            data: {
-              status: 'ACTIVE'
-            }
-          });
+          console.log(`✅ Assinatura ${subscription.Id} salva com sucesso.`);
+        } catch (error) {
+          console.error('💥 Erro ao salvar a assinatura:', error);
         }
       },
-      { 
-        exchange: 'amq.direct', 
-        routingKey: 'create:subscription', 
-        queue: 'queue:package' 
+      {
+        queue: 'subscription'
       },
       'handleSubscriptionMessage'
     );

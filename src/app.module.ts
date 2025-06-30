@@ -6,12 +6,17 @@ import { RedisProviderModule } from './Infra/Providers/Redis';
 import { AppController } from './app.controller';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { PackageConsumerService } from './Infra/Providers/RabbitMQ/Packages/package-consumer.service';
+import { PrismaModule } from './Infra/Providers/Prisma/prisma.module';
+import { PackageReadRepository } from './Infra/Database/package.repository';
+import { SubscriptionReadRepository } from './Infra/Database/subscriptions.repository';
+import { SubscriptionConsumerService } from './Infra/Providers/RabbitMQ/Subscriptions/subscription-consumer.service';
 
 @Module({
   imports: [
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
     }),
+    PrismaModule,
     BeneficiaryModule,
     RedisProviderModule,
     RabbitMQModule.forRoot({
@@ -20,7 +25,12 @@ import { PackageConsumerService } from './Infra/Providers/RabbitMQ/Packages/pack
     }),
   ],
   controllers: [AppController],
-  providers: [PackageConsumerService]
+  providers: [
+    PackageConsumerService, 
+    SubscriptionConsumerService,
+    PackageReadRepository, 
+    SubscriptionReadRepository
+  ]
 })
 
 export class AppModule { }

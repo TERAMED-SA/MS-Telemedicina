@@ -2,66 +2,58 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { PackageBrokerEnvelope } from '../dtos/dto';
 import { PackageBrokerEnvelopeSchema } from '../dtos/schema';
-import { PrismaClient } from 'src/Infrastructure/Database/generated';
+import { PackageReadRepository } from 'src/Infra/Database/package.repository';
+import { Prisma } from '@prisma/client';
 
 
 @Injectable()
 export class PackageConsumerService implements OnModuleInit {
 
-  constructor(private readonly amqpConnection: AmqpConnection) { }
+  constructor(
+    private readonly amqpConnection: AmqpConnection,
+    private readonly packageRepository: PackageReadRepository
+  ) { }
 
   async onModuleInit() {
     this.amqpConnection.createSubscriber(
       async (msg: PackageBrokerEnvelope) => {
-        const prisma = new PrismaClient();
-        console.log('Received package message:', msg);
-
-        const result = PackageBrokerEnvelopeSchema.safeParse(msg)
+        const result = PackageBrokerEnvelopeSchema.safeParse(msg);
 
         if (!result.success) {
           console.error("Mensagem inválida:", result.error.format());
         } else {
-          const validMessage = result.data;
-          console.log("Mensagem válida:", validMessage.Message.Content.Name);
-          return;
-        }
-       /*  if (!result.isValid && !result.data) {
-          console.error('Invalid package message received:', result.error);
-          return;
-        }
+          const validMessage = result.data.Message;
 
-        if (!result.data) {
-          console.error('No data found in package message:', msg);
-          return;
+          const content = validMessage.Content;
+          try {
+
+            console.log(content.Features)
+            const features = Array.isArray(content.Features)
+              ? content.Features.flatMap(f =>
+                typeof f === 'string'
+                  ? [f]
+                  : typeof f.Feature === 'string'
+                    ? [f.Feature]
+                    : []
+              )
+              : [];
+            await this.packageRepository.create({
+              id: content.Id,
+              name: content.Name,
+              price: new Prisma.Decimal(content.Price),
+              currency: content.Currency,
+              billingPeriod: content.BillingPeriod,
+              features,
+              isActive: content.IsActive,
+              createdAt: new Date(content.CreatedAt),
+              updatedAt: new Date(content.UpdatedAt),
+              description: null
+            });
+            console.log('Pacote cadastrado com sucesso!');
+          } catch (err) {
+            console.error('Erro ao cadastrar pacote:', err);
+          }
         }
-                const { data, type } = result.data;
-        
-                if (type === 'create:package') {
-                  const { id, name, description, price, currency, billingPeriod, features, isActive, createdAt, updatedAt } = data;
-                  if (!id || !name || !description || price === undefined || !currency || !billingPeriod || !features || isActive === undefined || !createdAt || !updatedAt) {
-                    console.error('Package creation failed: missing required fields');
-                    return;
-                  }
-                  await this.prisma.package.create({
-                    data: { id, name, description, price, currency, billingPeriod, features, isActive, createdAt, updatedAt }
-                  });
-                }
-        
-                if (type === 'update:package' && data.id) {
-                  await this.prisma.package.update({
-                    where: { id: data.id },
-                    data: {
-                      ...data
-                    }
-                  });
-                }
-        
-                if (type === 'deactivate:package' && data.id) {
-                  await this.prisma.package.update({
-                    where: { id: data.id },
-                    data: { isActive: false }
-                  });
-                } */
       },
       {
         queue: 'package'
