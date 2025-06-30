@@ -3,19 +3,20 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { RapidocProviderModule } from 'src/Infra/Providers/Rapidoc/rapidoc.module';
 import { BeneficiaryService } from './beneficiary.service';
 import { RedisProviderModule } from 'src/Infra/Providers/Redis/redis.module';
+import { SubscriptionModule } from 'src/Infra/Providers/RabbitMQ/Subscriptions/subscriptions.module'; // <-- adicione este import
 
 @Module({
-  imports:      [
-    AutomapperModule, 
+  imports: [
+    AutomapperModule,
     RapidocProviderModule,
-    RedisProviderModule
+    RedisProviderModule,
+    SubscriptionModule,
   ],
-  providers:    [
-    BeneficiaryService, 
+  providers: [
+    BeneficiaryService,
   ],
-  exports:      [
-    BeneficiaryService, 
+  exports: [
+    BeneficiaryService,
   ],
 })
-
 export class BeneficiaryModule {}

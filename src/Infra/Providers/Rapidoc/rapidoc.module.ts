@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { HttpModule as AxiosModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HttpClient } from '../http/config';
+import { HttpClient } from '../Http/http.service';
 import { RapidocBeneficiaryService } from './services/beneficiaries.service';
 import { RapidocSchedulingService } from './services/scheduling.service';
+import { HttpProviderModule } from '../Http/http.module';
 
 @Module({
   imports: [
     ConfigModule,
+    HttpProviderModule,
     AxiosModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -23,12 +25,10 @@ import { RapidocSchedulingService } from './services/scheduling.service';
     }),
   ],
   providers: [
-    HttpClient, 
     RapidocSchedulingService,
     RapidocBeneficiaryService,
   ],
   exports: [
-    HttpClient, 
     RapidocSchedulingService,
     RapidocBeneficiaryService,
   ],

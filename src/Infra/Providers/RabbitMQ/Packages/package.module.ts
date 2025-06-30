@@ -11,6 +11,6 @@ import { RabbitMQModule } from '../rabbitmq.module';
     forwardRef(() => RabbitMQModule),
   ],
   providers: [PackageConsumerService, PackageReadRepository],
-  exports: [PackageConsumerService],
+  exports: [PackageConsumerService, PackageReadRepository],
 })
 export class PackageModule {}

@@ -10,6 +10,6 @@ import { RabbitMQModule } from '../rabbitmq.module';
     forwardRef(() => RabbitMQModule),
   ],
   providers: [SubscriptionConsumerService, SubscriptionReadRepository],
-  exports: [SubscriptionConsumerService],
+  exports: [SubscriptionConsumerService, SubscriptionReadRepository], 
 })
 export class SubscriptionModule { }

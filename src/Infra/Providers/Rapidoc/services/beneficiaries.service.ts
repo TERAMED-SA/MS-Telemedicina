@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { HttpClient } from '../../http/config';
 import {
   BecomeBeneficiaryRequestDto,
   BecomeBeneficiaryResponseDto,
@@ -13,6 +12,7 @@ import {
   UpdateBeneficiaryResponseDto
 } from '../dtos/beneficiaries';
 import { Observable } from 'rxjs';
+import { HttpClient } from '../../Http/http.service';
 
 @Injectable()
 export class RapidocBeneficiaryService {

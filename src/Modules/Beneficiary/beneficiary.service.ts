@@ -26,7 +26,7 @@ export class BeneficiaryService {
   constructor(
     private readonly rapidocService: RapidocBeneficiaryService,
     private readonly rapidocSchedulingService: RapidocSchedulingService,
-    //private readonly subscriptionReadRepository: SubscriptionReadRepository,
+    private readonly subscriptionReadRepository: SubscriptionReadRepository,
     @Inject("REDIS_CLIENT") private readonly redis: Redis
   ) { }
 
@@ -93,11 +93,11 @@ export class BeneficiaryService {
   }
 
   async requestRoomAccess(uuid: string) {
-    /* const subscription = await this.subscriptionReadRepository.findActiveByUserId(uuid);
-    
+    const subscription = await this.subscriptionReadRepository.findActiveByUserId(uuid);
+
     if (!subscription) {
       throw new ForbiddenException('Usuário não possui assinatura ativa.');
-    } */
+    }
 
     const cacheKey = `beneficiary:${uuid}:appointments`;
     const observable = await this.rapidocService.requestRoomAccess(uuid);
@@ -149,11 +149,11 @@ export class BeneficiaryService {
   }
 
   async scheduleAppointment(appointmentData: any, userId: string) {
-   /*  const subscription = await this.subscriptionReadRepository.findActiveByUserId(userId);
+    const subscription = await this.subscriptionReadRepository.findActiveByUserId(userId);
 
     if (!subscription) {
       throw new ForbiddenException('Usuário não possui assinatura ativa.');
-    } */
+    }
 
     const observable = await this.rapidocSchedulingService.scheduleAppointment(appointmentData);
     return await firstValueFrom(observable)

@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { RabbitMQModule as GoLevelUpRabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { enviroment } from 'src/enviroment';
 import { PackageModule } from './Packages/package.module';
 import { SubscriptionModule } from './Subscriptions/subscriptions.module';
-import { enviroment } from 'src/enviroment';
 
 @Module({
   imports: [
@@ -10,13 +10,11 @@ import { enviroment } from 'src/enviroment';
       uri: enviroment.RABBITMQ_URI,
       connectionInitOptions: { wait: false },
     }),
-    PackageModule,
-    SubscriptionModule,
+    forwardRef(() => PackageModule),
+    forwardRef(() => SubscriptionModule),
   ],
   exports: [
-    GoLevelUpRabbitMQModule,
-    PackageModule,
-    SubscriptionModule,
+    GoLevelUpRabbitMQModule
   ],
 })
 export class RabbitMQModule {}

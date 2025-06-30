@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { HttpClient } from "../../http/config";
-import { firstValueFrom, Observable } from "rxjs";
+import { Observable } from "rxjs";
 import { ReadAvailabilityBySpecialtiesResponseDto, ReadBeneficiarySchedulingResponse, ReadSpecialitiesResponseDto } from "../dtos/schedulings";
 import { ReadBeneficiaryAppointmentsResponseDto } from "../dtos/beneficiaries";
-import { RapidocResponseDto } from "../dtos/beneficiaries/response.dto";
+import { HttpClient } from "../../Http/http.service";
 
 @Injectable()
 export class RapidocSchedulingService {
