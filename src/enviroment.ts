@@ -6,24 +6,17 @@ config();
 const envSchema = z.object({
   SERVER_PORT: z.string().transform(Number).default('3000'),
 
+  DATABASE_URL: z.string().url(),
+  RABBITMQ_URI: z.string().url(),
+
   RAPIDOC_BASE_URL: z.string(),
   RAPIDOC_CLIENT_ID: z.string(),
   RAPIDOC_AUTHORIZATION: z.string(),
   RAPIDOC_CONTENT_TYPE: z.string().default('application/json'),
 
-  USER_BASE_URL: z.string(),
-  USER_CLIENT_ID: z.string(),
-  USER_AUTHORIZATION: z.string(),
-  USER_CONTENT_TYPE: z.string().default('application/json'),
-
-  SUBSCRIPTIONS_BASE_URL: z.string(),
-  SUBSCRIPTIONS_CLIENT_ID: z.string(),
-  SUBSCRIPTIONS_AUTHORIZATION: z.string(),
-  SUBSCRIPTIONS_CONTENT_TYPE: z.string().default('application/json'),
-
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.string().transform(Number).default('6379'),
-  REDIS_PASSWORD: z.string().default('')
+  REDIS_PASSWORD: z.string().default(''),
 });
 
 const _env = envSchema.safeParse(process.env);

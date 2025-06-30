@@ -1,17 +1,32 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import Redis from "ioredis";
 import { firstValueFrom } from "rxjs";
-import { BecomeBeneficiaryRequestDto, ReadBeneficiariesResponseDto, ReadBeneficiaryAppointmentsResponseDto, ReadBeneficiaryByCPFResponseDto, ReadBeneficiaryReferralsResponseDto, UpdateBeneficiaryRequestDto } from "src/Infrastructure/Providers/Rapidoc/dtos/beneficiaries";
-import { RapidocBeneficiaryService } from "src/Infrastructure/Providers/Rapidoc/services/beneficiaries.service";
-import { RapidocSchedulingService } from "src/Infrastructure/Providers/Rapidoc/services/scheduling.service";
+import {
+  SubscriptionReadRepository
+} from "src/Infra/Database/subscriptions.repository";
+import {
+  BecomeBeneficiaryRequestDto,
+  ReadBeneficiariesResponseDto,
+  ReadBeneficiaryAppointmentsResponseDto,
+  ReadBeneficiaryByCPFResponseDto,
+  ReadBeneficiaryReferralsResponseDto,
+  UpdateBeneficiaryRequestDto
+} from "src/Infra/Providers/Rapidoc/dtos/beneficiaries";
+import {
+  RapidocBeneficiaryService
+} from "src/Infra/Providers/Rapidoc/services/beneficiaries.service";
+import {
+  RapidocSchedulingService
+} from "src/Infra/Providers/Rapidoc/services/scheduling.service";
 
-const CACHE_TTL = 1800; //30 minutos
+const CACHE_TTL = 1800;
 
 @Injectable()
 export class BeneficiaryService {
   constructor(
     private readonly rapidocService: RapidocBeneficiaryService,
     private readonly rapidocSchedulingService: RapidocSchedulingService,
+    //private readonly subscriptionReadRepository: SubscriptionReadRepository,
     @Inject("REDIS_CLIENT") private readonly redis: Redis
   ) { }
 
@@ -73,11 +88,17 @@ export class BeneficiaryService {
 
     await this.redis.del('beneficiaries:all');
     await this.redis.del(`beneficiary:cpf:${result.beneficiary.cpf}`);
-    
+
     return result;
   }
 
   async requestRoomAccess(uuid: string) {
+    /* const subscription = await this.subscriptionReadRepository.findActiveByUserId(uuid);
+    
+    if (!subscription) {
+      throw new ForbiddenException('Usuário não possui assinatura ativa.');
+    } */
+
     const cacheKey = `beneficiary:${uuid}:appointments`;
     const observable = await this.rapidocService.requestRoomAccess(uuid);
     await this.redis.del(cacheKey)
@@ -127,7 +148,13 @@ export class BeneficiaryService {
     return result;
   }
 
-  async scheduleAppointment(appointmentData: any) {
+  async scheduleAppointment(appointmentData: any, userId: string) {
+   /*  const subscription = await this.subscriptionReadRepository.findActiveByUserId(userId);
+
+    if (!subscription) {
+      throw new ForbiddenException('Usuário não possui assinatura ativa.');
+    } */
+
     const observable = await this.rapidocSchedulingService.scheduleAppointment(appointmentData);
     return await firstValueFrom(observable)
   }

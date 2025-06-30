@@ -1,13 +1,33 @@
-version: '3.8'
-
 services:
   redis:
-    image: redis:7-alpine
     container_name: redis-dev
+    image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
+  database:
+    container_name: postgres
+    image: postgres:15
+    restart: always
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234567890
+      POSTGRES_DB: baika_corporate
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
 volumes:
-  redis_data:
+  redis_data: null
+  postgres_data: null
