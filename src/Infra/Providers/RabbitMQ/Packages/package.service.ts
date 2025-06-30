@@ -1,9 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { PackageBrokerEnvelope } from '../dtos/dto';
-import { PackageBrokerEnvelopeSchema } from '../dtos/schema';
 import { PackageReadRepository } from 'src/Infra/Database/package.repository';
 import { Prisma } from '@prisma/client';
+import { PackageBrokerEnvelope } from './package.dtos';
+import { PackageBrokerEnvelopeSchema } from './package.schema';
 
 
 @Injectable()

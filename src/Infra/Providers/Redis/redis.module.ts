@@ -14,7 +14,6 @@ export const RedisProvider: Provider = {
   },
 };
 
-
 @Module({
   providers: [RedisProvider],
   exports: [RedisProvider],

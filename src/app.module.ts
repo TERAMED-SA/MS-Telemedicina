@@ -2,14 +2,10 @@ import { Module } from '@nestjs/common';
 import { AutomapperModule } from '@automapper/nestjs';
 import { classes } from '@automapper/classes';
 import { BeneficiaryModule } from './Modules/Beneficiary/beneficiary.module';
-import { RedisProviderModule } from './Infra/Providers/Redis';
+import { RedisProviderModule } from './Infra/Providers/Redis/redis.module';
 import { AppController } from './app.controller';
-import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-import { PackageConsumerService } from './Infra/Providers/RabbitMQ/Packages/package-consumer.service';
 import { PrismaModule } from './Infra/Providers/Prisma/prisma.module';
-import { PackageReadRepository } from './Infra/Database/package.repository';
-import { SubscriptionReadRepository } from './Infra/Database/subscriptions.repository';
-import { SubscriptionConsumerService } from './Infra/Providers/RabbitMQ/Subscriptions/subscription-consumer.service';
+import { RabbitMQModule } from './Infra/Providers/RabbitMQ/rabbitmq.module';
 
 @Module({
   imports: [
@@ -19,18 +15,9 @@ import { SubscriptionConsumerService } from './Infra/Providers/RabbitMQ/Subscrip
     PrismaModule,
     BeneficiaryModule,
     RedisProviderModule,
-    RabbitMQModule.forRoot({
-      uri: process.env.RABBITMQ_URI  || 'amqps://vwsjvuxn:ETVjObxd0LWal0pxMvg4wmPGLbJQNw0R@jackal.rmq.cloudamqp.com/vwsjvuxn',
-      connectionInitOptions: { wait: false },
-    }),
+    RabbitMQModule
   ],
-  controllers: [AppController],
-  providers: [
-    PackageConsumerService, 
-    SubscriptionConsumerService,
-    PackageReadRepository, 
-    SubscriptionReadRepository
-  ]
+  controllers: [AppController]
 })
 
 export class AppModule { }

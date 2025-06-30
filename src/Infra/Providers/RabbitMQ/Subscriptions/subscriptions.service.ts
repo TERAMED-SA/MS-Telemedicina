@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { SubscriptionEnvelopeDTO } from '../dtos/dto';
-import { SubscriptionEnvelopeSchema } from '../dtos/schema2';
 import { SubscriptionReadRepository } from 'src/Infra/Database/subscriptions.repository';
+import { SubscriptionEnvelopeDTO } from './subscriptions.dtos';
+import { SubscriptionEnvelopeSchema } from './subscriptions.schema';
 
 @Injectable()
 export class SubscriptionConsumerService implements OnModuleInit {
