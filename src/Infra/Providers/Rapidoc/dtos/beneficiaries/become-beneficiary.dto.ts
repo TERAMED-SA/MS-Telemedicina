@@ -2,15 +2,18 @@ import { RapidocResponseDto } from "./response.dto";
 
 export type BecomeBeneficiaryRequestDto = {
   name: string;
-  cpf: string;
   birthday: string;
   phone: string;
   email: string;
-  zipCode: string;
   address: string;
   city: string;
   state: string;
 };
+
+export type RequiredFields = {
+  cpf: string;
+  zipCode: string;
+}
 
 type Beneficiary = {
   cpf: string,

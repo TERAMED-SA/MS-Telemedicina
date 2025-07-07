@@ -1,6 +1,6 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import Redis from "ioredis";
-import { firstValueFrom } from "rxjs";
+import { BeneficiaryRepository } from "src/Infra/Database/beneficiary.repository";
 import {
   SubscriptionReadRepository
 } from "src/Infra/Database/subscriptions.repository";
@@ -18,6 +18,8 @@ import {
 import {
   RapidocSchedulingService
 } from "src/Infra/Providers/Rapidoc/services/scheduling.service";
+import { generateCPF } from "src/utils/generateCPF";
+import { generateZipCode } from "src/utils/generateZipCode";
 
 const CACHE_TTL = 1800;
 
@@ -27,64 +29,59 @@ export class BeneficiaryService {
     private readonly rapidocService: RapidocBeneficiaryService,
     private readonly rapidocSchedulingService: RapidocSchedulingService,
     private readonly subscriptionReadRepository: SubscriptionReadRepository,
+    private readonly beneficiaryReadRepository: BeneficiaryRepository,
     @Inject("REDIS_CLIENT") private readonly redis: Redis
   ) { }
 
-  async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto) {
-    const observable = await this.rapidocService.becomeBeneficiary(beneficiary);
-    const result = await firstValueFrom(observable);
+  async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string}) {
+    const cpf = generateCPF();
+    const zipCode = generateZipCode();
+
+    const beneficiaryCreated = await this.beneficiaryReadRepository.create({
+      ...beneficiary,
+      birthday: new Date(beneficiary.birthday),
+      cpf,
+      zipCode,
+      externalClientId: beneficiary.id
+    })
+
+    const { externalClientId, id, createdAt, updatedAt, birthday, ...rest } = beneficiaryCreated;
+
+    const result = await this.rapidocService.becomeBeneficiary({
+      ...rest,
+      birthday: birthday.toISOString(),
+    });
 
     await this.redis.del('beneficiaries:all');
     return result;
   }
 
   async getBeneficiaries() {
-    const cacheKey = 'beneficiaries:all';
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached) as ReadBeneficiariesResponseDto;
 
-    const observable = await this.rapidocService.readBeneficiaries();
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result));
+    const result = await this.rapidocService.readBeneficiaries();
+    if (!result.success) {
+      return new ForbiddenException('Não foi possível obter a lista de beneficiários.');
+    }
     return result;
   }
 
   async getBeneficiaryById(cpf: string) {
-    const cacheKey = `beneficiary:cpf:${cpf}`;
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached) as ReadBeneficiaryByCPFResponseDto;
-
-    const observable = await this.rapidocService.readBeneficiaryByCPF(cpf);
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result));
+    const result = await this.rapidocService.readBeneficiaryByCPF(cpf);
     return result;
   }
 
   async getBeneficiaryAppointments(uuid: string) {
-    const cacheKey = `beneficiary:${uuid}:appointments`;
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached) as ReadBeneficiaryAppointmentsResponseDto;
-
-    const observable = await this.rapidocService.readBeneficiaryAppointments(uuid);
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', CACHE_TTL);
+    const result = await this.rapidocService.readBeneficiaryAppointments(uuid);
     return result;
   }
 
   async getBeneficiaryReferrals(uuid: string) {
-    const cacheKey = `beneficiary:${uuid}:referrals`;
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached) as ReadBeneficiaryReferralsResponseDto;
-
-    const observable = await this.rapidocService.readBeneficiaryReferrals(uuid);
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', CACHE_TTL);
+    const result = await this.rapidocService.readBeneficiaryReferrals(uuid);
     return result;
   }
 
   async updateBeneficiary(uuid: string, beneficiary: UpdateBeneficiaryRequestDto) {
-    const observable = await this.rapidocService.updateBeneficiary(uuid, beneficiary);
-    const result = await firstValueFrom(observable);
+    const result = await this.rapidocService.updateBeneficiary(uuid, beneficiary);
 
     await this.redis.del('beneficiaries:all');
     await this.redis.del(`beneficiary:cpf:${result.beneficiary.cpf}`);
@@ -92,59 +89,51 @@ export class BeneficiaryService {
     return result;
   }
 
-  async requestRoomAccess(uuid: string) {
-    const subscription = await this.subscriptionReadRepository.findActiveByUserId(uuid);
+  async requestRoomAccess(phoneNumber: string) {
 
-    if (!subscription) {
-      throw new ForbiddenException('Usuário não possui assinatura ativa.');
+    //TODO: Implementar validação de telefone
+    if (!phoneNumber || phoneNumber.length < 8) {
+      return new ForbiddenException('Número de telefone inválido.');
     }
 
-    const cacheKey = `beneficiary:${uuid}:appointments`;
-    const observable = await this.rapidocService.requestRoomAccess(uuid);
-    await this.redis.del(cacheKey)
-    return await firstValueFrom(observable)
+    //TODO: Buscar UUID do beneficiário pelo telefone
+    const beneficiary = await this.beneficiaryReadRepository.findByPhone(phoneNumber);
+
+    if (!beneficiary) {
+      return new ForbiddenException('Beneficiário não encontrado.');
+    }
+
+    //TODO: Verificar se tem subscricao ativa com acesso a telemedicina
+
+
+    //TODO: Fazer pedido na Rapidoc para acesso a sala com o uuid do beneficiário
+
+
+    const result = await this.rapidocService.requestRoomAccess(beneficiary.id);
+    return result;
   }
 
   async deactivateBeneficiary(uuid: string) {
-    const observable = await this.rapidocService.deactivateBeneficiary(uuid);
-    return await firstValueFrom(observable)
+    return await this.rapidocService.deactivateBeneficiary(uuid);
   }
 
   async reactivateBeneficiary(uuid: string) {
-    const observable = await this.rapidocService.reactivateBeneficiary(uuid);
-    return await firstValueFrom(observable)
+    return await this.rapidocService.reactivateBeneficiary(uuid);
   }
 
   async readSpecialities() {
-    const cacheKey = 'specialities:all';
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const observable = await this.rapidocSchedulingService.readSpecialities();
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', CACHE_TTL);
+   
+    const result = await this.rapidocSchedulingService.readSpecialities();
     return result;
   }
 
   async readAvailabilityBySpeciality(specialityId: string) {
-    const cacheKey = `speciality:${specialityId}:availability`;
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const observable = await this.rapidocSchedulingService.readAvailabilityBySpeciality(specialityId);
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', CACHE_TTL);
+    const result = await this.rapidocSchedulingService.readAvailabilityBySpeciality(specialityId);
     return result;
   }
 
   async readSchedulingByBeneficiary(uuid: string) {
-    const cacheKey = `beneficiary:${uuid}:schedulings`;
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const observable = await this.rapidocSchedulingService.readSchedulingsByBeneficiary(uuid);
-    const result = await firstValueFrom(observable);
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', CACHE_TTL);
+    const result = await this.rapidocSchedulingService.readSchedulingsByBeneficiary(uuid);
     return result;
   }
 
@@ -152,10 +141,9 @@ export class BeneficiaryService {
     const subscription = await this.subscriptionReadRepository.findActiveByUserId(userId);
 
     if (!subscription) {
-      throw new ForbiddenException('Usuário não possui assinatura ativa.');
+      return new ForbiddenException('Usuário não possui assinatura ativa.');
     }
 
-    const observable = await this.rapidocSchedulingService.scheduleAppointment(appointmentData);
-    return await firstValueFrom(observable)
+    return await this.rapidocSchedulingService.scheduleAppointment(appointmentData);
   }
 }

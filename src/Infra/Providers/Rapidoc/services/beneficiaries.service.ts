@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import {
   BecomeBeneficiaryRequestDto,
   BecomeBeneficiaryResponseDto,
@@ -11,73 +12,92 @@ import {
   UpdateBeneficiaryRequestDto,
   UpdateBeneficiaryResponseDto
 } from '../dtos/beneficiaries';
-import { Observable } from 'rxjs';
-import { HttpClient } from '../../Http/http.service';
+import { enviroment } from 'src/enviroment';
+import { RequiredFields } from '../dtos/beneficiaries/become-beneficiary.dto';
 
 @Injectable()
 export class RapidocBeneficiaryService {
-  constructor(private readonly httpClient: HttpClient) { }
+  private baseUrl = enviroment.RAPIDOC_BASE_URL;
 
-  async becomeBeneficiary(data: BecomeBeneficiaryRequestDto):
-    Promise<
-      Observable<BecomeBeneficiaryResponseDto>
-    > {
-    return this.httpClient.post<BecomeBeneficiaryResponseDto>(`/`, [data]);
+  private getHeaders() {
+    return {
+      'clientId': enviroment.RAPIDOC_CLIENT_ID,
+      'Authorization': 'Bearer ' + enviroment.RAPIDOC_AUTHORIZATION,
+    };
   }
 
-  async requestRoomAccess(uuid: string):
-    Promise<
-      Observable<BeneficiaryRequestServiceResponseDto>
-    > {
-    return this.httpClient.get<BeneficiaryRequestServiceResponseDto>(`/${uuid}/request-appointment`);
+  async becomeBeneficiary(data: BecomeBeneficiaryRequestDto & RequiredFields): Promise<BecomeBeneficiaryResponseDto> {
+    const response = await axios.post<BecomeBeneficiaryResponseDto>(
+      `${this.baseUrl}/beneficiaries/`,
+      [data],
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async deactivateBeneficiary(uuid: string):
-    Promise<
-      Observable<ToggleBeneficiaryStatusResponseDto>
-    > {
-    return this.httpClient.delete<ToggleBeneficiaryStatusResponseDto>(`/${uuid}`);
+  async requestRoomAccess(uuid: string): Promise<BeneficiaryRequestServiceResponseDto> {
+    const response = await axios.get<BeneficiaryRequestServiceResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}/request-appointment`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async readBeneficiaries():
-    Promise<
-      Observable<ReadBeneficiariesResponseDto>
-    > {
-    return this.httpClient.get<ReadBeneficiariesResponseDto>(`/`);
+  async deactivateBeneficiary(uuid: string): Promise<ToggleBeneficiaryStatusResponseDto> {
+    const response = await axios.delete<ToggleBeneficiaryStatusResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async readBeneficiaryByCPF(cpf: string):
-    Promise<
-      Observable<ReadBeneficiaryByCPFResponseDto>
-    > {
-    return this.httpClient.get<ReadBeneficiaryByCPFResponseDto>(`/${cpf}`);
+  async readBeneficiaries(): Promise<ReadBeneficiariesResponseDto> {
+    const response = await axios.get<ReadBeneficiariesResponseDto>(
+      `${this.baseUrl}/beneficiaries/`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async readBeneficiaryReferrals(uuid: string):
-    Promise<
-      Observable<ReadBeneficiaryReferralsResponseDto>
-    > {
-    return this.httpClient.get<ReadBeneficiaryReferralsResponseDto>(`/${uuid}/medical-referrals`);
+  async readBeneficiaryByCPF(cpf: string): Promise<ReadBeneficiaryByCPFResponseDto> {
+    const response = await axios.get<ReadBeneficiaryByCPFResponseDto>(
+      `${this.baseUrl}/beneficiaries/${cpf}`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async readBeneficiaryAppointments(uuid: string):
-    Promise<
-      Observable<ReadBeneficiaryAppointmentsResponseDto>
-    > {
-    return this.httpClient.get<ReadBeneficiaryAppointmentsResponseDto>(`/${uuid}/appointments`);
+  async readBeneficiaryReferrals(uuid: string): Promise<ReadBeneficiaryReferralsResponseDto> {
+    const response = await axios.get<ReadBeneficiaryReferralsResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}/medical-referrals`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async reactivateBeneficiary(uuid: string):
-    Promise<
-      Observable<ToggleBeneficiaryStatusResponseDto>
-    > {
-    return this.httpClient.put<ToggleBeneficiaryStatusResponseDto>(`/${uuid}/reactivate`);
+  async readBeneficiaryAppointments(uuid: string): Promise<ReadBeneficiaryAppointmentsResponseDto> {
+    const response = await axios.get<ReadBeneficiaryAppointmentsResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}/appointments`,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 
-  async updateBeneficiary(uuid: string, data: UpdateBeneficiaryRequestDto):
-    Promise<
-      Observable<UpdateBeneficiaryResponseDto>
-    > {
-    return this.httpClient.put<UpdateBeneficiaryResponseDto>(`/${uuid}`, data);
+  async reactivateBeneficiary(uuid: string): Promise<ToggleBeneficiaryStatusResponseDto> {
+    const response = await axios.put<ToggleBeneficiaryStatusResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}/reactivate`,
+      {},
+      { headers: this.getHeaders() }
+    );
+    return response.data;
+  }
+
+  async updateBeneficiary(uuid: string, data: UpdateBeneficiaryRequestDto): Promise<UpdateBeneficiaryResponseDto> {
+    const response = await axios.put<UpdateBeneficiaryResponseDto>(
+      `${this.baseUrl}/beneficiaries/${uuid}`,
+      data,
+      { headers: this.getHeaders() }
+    );
+    return response.data;
   }
 }

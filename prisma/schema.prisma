@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,37 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BeneficiaryType {
+  INDIVIDUAL
+  CORPORATE
+}
+
 model Package {
-  id            String         @id
+  id            String   @id
   name          String
   description   String?
   price         Decimal
   currency      String
   billingPeriod String
-  features      String[]      
-  isActive      Boolean        
-  createdAt     DateTime       
-  updatedAt     DateTime       
+  features      String[]
+  isActive      Boolean
+  createdAt     DateTime
+  updatedAt     DateTime
 
   subscriptions Subscription[]
 }
 
-model Subscription {
-  id                    String      @id
-  packageId             String
-  userId                String?
-  status                String
-  startDate             DateTime
-  endDate               DateTime?
-  renewsAt              DateTime?
-  canceledAt            DateTime?
-  paymentMethod         String?
-  paymentMethodDetails  Json?
-  paymentTransactionId  String?
-  paymentTransactionStatus String?
-  externalRef           String?
-  createdAt             DateTime    
-  updatedAt             DateTime    
+model Beneficiary {
+  id                     String   @id @default(uuid())
+  name                   String
+  phone                  String   @unique
+  email                  String   @unique
+  associatedEmails       String[] @unique
+  associatedPhoneNumbers String[] @unique
+  cpf                    String   @unique
+  address                String
+  city                   String
+  zipCode                String
+  state                  String
 
-  package               Package     @relation(fields: [packageId], references: [id])
+  birthDate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Subscription    Subscription[]
+  beneficiaryType BeneficiaryType
+
+  external_user_id String @unique @map("external_user_id")
+}
+
+model Subscription {
+  id                       String      @id
+  packageId                String
+  beneficiaryId            String
+  beneficiary              Beneficiary @relation(fields: [beneficiaryId], references: [external_user_id])
+  status                   String
+  paymentMethod            String?
+  paymentMethodDetails     Json?
+  paymentTransactionId     String?
+  paymentTransactionStatus String?
+  externalRef              String?
+
+  startDate  DateTime
+  endDate    DateTime?
+  renewsAt   DateTime?
+  canceledAt DateTime?
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  package Package @relation(fields: [packageId], references: [id])
 }
