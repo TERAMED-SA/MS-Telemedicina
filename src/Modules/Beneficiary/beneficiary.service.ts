@@ -33,19 +33,20 @@ export class BeneficiaryService {
     @Inject("REDIS_CLIENT") private readonly redis: Redis
   ) { }
 
-  async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string}) {
+  async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string, bi: string }) {
     const cpf = generateCPF();
     const zipCode = generateZipCode();
 
     const beneficiaryCreated = await this.beneficiaryReadRepository.create({
       ...beneficiary,
-      birthday: new Date(beneficiary.birthday),
+      birthDate: new Date(beneficiary.birthday),
       cpf,
       zipCode,
-      externalClientId: beneficiary.id
+      external_user_id: beneficiary.id,
+      bi: beneficiary.bi
     })
 
-    const { externalClientId, id, createdAt, updatedAt, birthday, ...rest } = beneficiaryCreated;
+    const { bi, id, createdAt, updatedAt, birthDate: birthday, ...rest } = beneficiaryCreated;
 
     const result = await this.rapidocService.becomeBeneficiary({
       ...rest,
@@ -89,14 +90,16 @@ export class BeneficiaryService {
     return result;
   }
 
+  async confirmBeneficiarywithOTP() {
+
+  }
+
   async requestRoomAccess(phoneNumber: string) {
 
-    //TODO: Implementar validação de telefone
     if (!phoneNumber || phoneNumber.length < 8) {
       return new ForbiddenException('Número de telefone inválido.');
     }
 
-    //TODO: Buscar UUID do beneficiário pelo telefone
     const beneficiary = await this.beneficiaryReadRepository.findByPhone(phoneNumber);
 
     if (!beneficiary) {
@@ -104,10 +107,7 @@ export class BeneficiaryService {
     }
 
     //TODO: Verificar se tem subscricao ativa com acesso a telemedicina
-
-
     //TODO: Fazer pedido na Rapidoc para acesso a sala com o uuid do beneficiário
-
 
     const result = await this.rapidocService.requestRoomAccess(beneficiary.id);
     return result;

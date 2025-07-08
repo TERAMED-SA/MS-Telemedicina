@@ -29,7 +29,7 @@ export class BeneficiaryRepository {
   }
 
   async findByEmail(email: string): Promise<Beneficiary | null> {
-    return this.prisma.beneficiary.findUnique({ where: { email: [email] } });
+    return this.prisma.beneficiary.findUnique({ where: { email } });
   }
 
   async update(id: string, data: Partial<Omit<Beneficiary, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Beneficiary> {

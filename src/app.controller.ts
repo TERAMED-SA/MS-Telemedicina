@@ -7,7 +7,7 @@ export class AppController {
   constructor(private readonly beneficiaryService: BeneficiaryService) {}
 
   @Post('beneficiaries')
-  async createBeneficiary(@Body() body: BecomeBeneficiaryRequestDto) {
+  async createBeneficiary(@Body() body: BecomeBeneficiaryRequestDto & { bi: string, id: string }) {
     return this.beneficiaryService.createBeneficiary(body);
   }
 
