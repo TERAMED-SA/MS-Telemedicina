@@ -7,4 +7,5 @@ import { HttpClient } from './http.service';
   providers: [HttpClient],
   exports: [HttpClient],
 })
+
 export class HttpProviderModule {}
