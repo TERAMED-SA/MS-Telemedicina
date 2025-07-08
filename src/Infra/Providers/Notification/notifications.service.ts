@@ -10,18 +10,22 @@ export class NotificationsService {
   private baseUrl = enviroment.SMS_URL;
 
   async sendSms(data: SendSmsDto) {
-    const { error, value } = smsValidationSchema.validate(data);
-    if (error) {
-      return new BadRequestException(error.message);
+   const result = smsValidationSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMsg = result.error.issues.map(i => i.message).join(', ');
+      throw new BadRequestException(errorMsg);
     }
+
+    const validatedData = result.data;
 
     try {
       await axios.post(
         `${this.baseUrl}/sms`,
-        [data],
+        [validatedData],
       );
       
-      this.logger.log(`🔔 SMS enviado para ${value.to}: ${value.body}`);
+      this.logger.log(`🔔 SMS enviado para ${validatedData.to}: ${validatedData.body}`);
     } catch (error) {
       this.logger.error(`❌ Erro ao enviar SMS: ${error.message}`);
       return new BadRequestException('Erro ao enviar SMS');

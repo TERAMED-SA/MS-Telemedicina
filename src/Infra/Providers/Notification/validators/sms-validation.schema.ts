@@ -1,16 +1,30 @@
-import Joi from 'joi';
+import { z } from 'zod';
 
-export const smsValidationSchema = Joi.object({
-  from: Joi.string().pattern(/^\+?\d{1,15}$/).default('TERAMED - SISTEMAS DE SAÚDE, SA'),
-  to: Joi.string().pattern(/^\+?\d{1,15}$/).required().messages({
-    'string.base': 'O campo "to" deve ser um número de telefone válido.',
-    'string.pattern.base': 'O campo "to" deve ser um número de telefone válido.',
-    'any.required': 'O campo "to" é obrigatório.',
-  }),
-  body: Joi.string().min(1).max(160).required().messages({
-    'string.base': 'O campo "message" deve ser uma string.',
-    'string.min': 'O campo "message" deve ter pelo menos 1 caractere.',
-    'string.max': 'O campo "message" deve ter no máximo 160 caracteres.',
-    'any.required': 'O campo "message" é obrigatório.',
-  }),
+export const smsValidationSchema = z.object({
+  from: z
+    .string()
+    .regex(/^\+?\d{1,15}$/, {
+      message: 'O campo "from" deve ser um número de telefone válido.',
+    })
+    .optional()
+    .default('TERAMED - SISTEMAS DE SAÚDE, SA'),
+    
+  to: z
+    .string({
+      required_error: 'O campo "to" é obrigatório.',
+      invalid_type_error: 'O campo "to" deve ser um número de telefone válido.',
+    })
+    .regex(/^\+?\d{1,15}$/, {
+      message: 'O campo "to" deve ser um número de telefone válido.',
+    }),
+
+  body: z
+    .string({
+      required_error: 'O campo "message" é obrigatório.',
+      invalid_type_error: 'O campo "message" deve ser uma string.',
+    })
+    .min(1, { message: 'O campo "message" deve ter pelo menos 1 caractere.' })
+    .max(160, {
+      message: 'O campo "message" deve ter no máximo 160 caracteres.',
+    }),
 });
