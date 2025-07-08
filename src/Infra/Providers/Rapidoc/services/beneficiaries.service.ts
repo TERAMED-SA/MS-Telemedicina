@@ -27,10 +27,12 @@ export class RapidocBeneficiaryService {
   }
 
   async becomeBeneficiary(data: BecomeBeneficiaryRequestDto & RequiredFields): Promise<BecomeBeneficiaryResponseDto> {
+    console.log(data);
+
     const response = await axios.post<BecomeBeneficiaryResponseDto>(
       `${this.baseUrl}/beneficiaries/`,
       [data],
-      { headers: this.getHeaders() }
+      { headers: { ...this.getHeaders(), 'Content-Type': enviroment.RAPIDOC_CONTENT_TYPE } }
     );
     return response.data;
   }
@@ -96,7 +98,7 @@ export class RapidocBeneficiaryService {
     const response = await axios.put<UpdateBeneficiaryResponseDto>(
       `${this.baseUrl}/beneficiaries/${uuid}`,
       data,
-      { headers: this.getHeaders() }
+      { headers: { ...this.getHeaders(), 'Content-Type': enviroment.RAPIDOC_CONTENT_TYPE } }
     );
     return response.data;
   }

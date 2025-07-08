@@ -34,7 +34,7 @@ export class BeneficiaryService {
       bi: beneficiary.bi
     })
 
-    const { bi, id, createdAt, updatedAt, birthDate: birthday, ...rest } = beneficiaryCreated;
+    const { bi, id, createdAt, updatedAt, external_user_id, birthDate: birthday, ...rest } = beneficiaryCreated;
 
     const result = await this.rapidocService.becomeBeneficiary({
       ...rest,
