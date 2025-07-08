@@ -22,9 +22,12 @@ export class BeneficiaryService {
     const cpf = generateCPF();
     const zipCode = generateZipCode();
 
+    const { birthday: birthdayString, ...beneficiaryWithoutBirthday } = beneficiary;
+
+
     const beneficiaryCreated = await this.beneficiaryReadRepository.create({
-      ...beneficiary,
-      birthDate: new Date(beneficiary.birthday),
+      ...beneficiaryWithoutBirthday,
+      birthDate: new Date(`${birthdayString}T00:00:00.000Z`),
       cpf,
       zipCode,
       external_user_id: beneficiary.id,
