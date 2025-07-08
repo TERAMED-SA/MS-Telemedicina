@@ -6,9 +6,7 @@ export const smsValidationSchema = z.object({
     .regex(/^\+?\d{1,15}$/, {
       message: 'O campo "from" deve ser um número de telefone válido.',
     })
-    .optional()
-    .default('TERAMED - SISTEMAS DE SAÚDE, SA'),
-    
+    .optional(),    
   to: z
     .string({
       required_error: 'O campo "to" é obrigatório.',

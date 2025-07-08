@@ -31,8 +31,17 @@ export class RapidocBeneficiaryService {
 
     const response = await axios.post<BecomeBeneficiaryResponseDto>(
       `${this.baseUrl}/beneficiaries/`,
-      [data],
-      { headers: { ...this.getHeaders(), 'Content-Type': enviroment.RAPIDOC_CONTENT_TYPE } }
+      [
+        {
+          name: data.name,
+          birthDate: data.birthday,
+          cpf: data.cpf,
+          email: data.email,
+          address: data.address,
+          city: data.city
+        }
+      ],
+      { headers: { ...this.getHeaders()} }
     );
     return response.data;
   }

@@ -16,5 +16,5 @@ export function generateCPF(withMask = true): string {
 
   if (!withMask) return fullCpf.join('');
 
-  return `${fullCpf.slice(0, 3).join('')}.${fullCpf.slice(3, 6).join('')}.${fullCpf.slice(6, 9).join('')}-${fullCpf.slice(9).join('')}`;
+  return `${fullCpf.slice(0, 3).join('')}${fullCpf.slice(3, 6).join('')}${fullCpf.slice(6, 9).join('')}${fullCpf.slice(9).join('')}`;
 }

@@ -10,11 +10,12 @@ export class NotificationsService {
   private baseUrl = enviroment.SMS_URL;
 
   async sendSms(data: SendSmsDto) {
-   const result = smsValidationSchema.safeParse(data);
+    const result = smsValidationSchema.safeParse(data);
+    console.log(result);
 
     if (!result.success) {
       const errorMsg = result.error.issues.map(i => i.message).join(', ');
-      throw new BadRequestException(errorMsg);
+      return new BadRequestException(errorMsg);
     }
 
     const validatedData = result.data;
@@ -24,10 +25,11 @@ export class NotificationsService {
         `${this.baseUrl}/sms`,
         [validatedData],
       );
-      
+
       this.logger.log(`🔔 SMS enviado para ${validatedData.to}: ${validatedData.body}`);
     } catch (error) {
       this.logger.error(`❌ Erro ao enviar SMS: ${error.message}`);
+      this.logger.error(error);
       return new BadRequestException('Erro ao enviar SMS');
     }
   }
