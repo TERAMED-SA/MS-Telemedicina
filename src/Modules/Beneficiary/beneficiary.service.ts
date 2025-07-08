@@ -79,7 +79,9 @@ export class BeneficiaryService {
       return new ForbiddenException('Beneficiário não encontrado.');
     }
 
-    const result = await this.rapidocService.requestRoomAccess(beneficiary.id);
+    const rapidocBeneficiaryByCPF = await this.rapidocService.readBeneficiaryByCPF(beneficiary.cpf) 
+
+    const result = await this.rapidocService.requestRoomAccess(rapidocBeneficiaryByCPF.beneficiary.uuid);
     return result;
   }
 
