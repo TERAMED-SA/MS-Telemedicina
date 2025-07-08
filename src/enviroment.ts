@@ -17,6 +17,8 @@ const envSchema = z.object({
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.string().transform(Number).default('6379'),
   REDIS_PASSWORD: z.string().default(''),
+
+  SMS_URL: z.string().url(),
 });
 
 const _env = envSchema.safeParse(process.env);

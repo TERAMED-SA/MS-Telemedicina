@@ -1,15 +1,16 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { randomInt } from 'crypto';
 import { addMinutes } from 'date-fns';
+import { NotificationsService } from 'src/Infra/Providers/Notification/notifications.service';
 import { PrismaService } from 'src/Infra/Providers/Prisma/prisma.service';
 
 @Injectable()
 export class OtpService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notificationService: NotificationsService) { }
 
   async generateOtp(phoneNumber: string) {
     const code = String(randomInt(100000, 999999));
-    const expiresAt = addMinutes(new Date(), 5); 
+    const expiresAt = addMinutes(new Date(), 5);
 
     console.log(`OTP para ${phoneNumber}: ${code}`);
 
@@ -20,8 +21,8 @@ export class OtpService {
     if (!beneficiary) {
       return new BadRequestException('Beneficiário não encontrado');
     }
-
-    await this.prisma.otpRequest.create({
+    
+    const valueOtp = await this.prisma.otpRequest.create({
       data: {
         phoneNumber,
         code,
@@ -29,6 +30,19 @@ export class OtpService {
         beneficiaryId: beneficiary.id,
       },
     });
+    
+    const result = await this.notificationService.sendSms({
+      to: phoneNumber,
+      body: `Seu código de verificação para Telemedicina é: ${code}`,
+    });
+    
+    if (result) {
+      await this.prisma.otpRequest.delete({
+        where: { id: valueOtp.id },
+      });
+
+      return result;
+    }
 
     return { message: 'OTP enviado com sucesso' };
   }
