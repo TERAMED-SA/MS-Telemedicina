@@ -1,4 +1,5 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { format, parseISO } from "date-fns";
 import Redis from "ioredis";
 import { BeneficiaryRepository } from "src/Infra/Database/beneficiary.repository";
 import {
@@ -22,6 +23,9 @@ export class BeneficiaryService {
     const cpf = generateCPF();
     const zipCode = generateZipCode();
 
+    console.log("BIRTH", beneficiary);
+    
+
     const { birthday: birthdayString, ...beneficiaryWithoutBirthday } = beneficiary;
 
 
@@ -38,7 +42,7 @@ export class BeneficiaryService {
 
     const result = await this.rapidocService.becomeBeneficiary({
       ...rest,
-      birthday: birthday.toISOString(),
+      birthday: format(parseISO(birthday.toISOString()), 'yyyy/MM/dd').toString().replaceAll('/', '-'),
     });
 
     return result;

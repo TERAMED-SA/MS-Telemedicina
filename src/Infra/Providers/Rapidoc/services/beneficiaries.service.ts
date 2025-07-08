@@ -31,17 +31,23 @@ export class RapidocBeneficiaryService {
 
     const response = await axios.post<BecomeBeneficiaryResponseDto>(
       `${this.baseUrl}/beneficiaries/`,
-      [
+      JSON.stringify([
         {
           name: data.name,
-          birthDate: data.birthday,
+          birthday: data.birthday,
           cpf: data.cpf,
           email: data.email,
           address: data.address,
           city: data.city
         }
-      ],
-      { headers: { ...this.getHeaders()} }
+      ]),
+      {
+        headers: {
+          'clientId': enviroment.RAPIDOC_CLIENT_ID,
+          'Authorization': 'Bearer ' + enviroment.RAPIDOC_AUTHORIZATION, 
+          'Content-Type': enviroment.RAPIDOC_CONTENT_TYPE
+        }
+      }
     );
     return response.data;
   }
