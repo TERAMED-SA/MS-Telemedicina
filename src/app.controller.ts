@@ -53,11 +53,4 @@ export class AppController {
   async reactivateBeneficiary(@Param('uuid') uuid: string) {
     return this.beneficiaryService.reactivateBeneficiary(uuid);
   }
-
-  @Get('specialities')
-  async readSpecialities() {
-    console.log('Reading specialities...');
-    
-    return await this.beneficiaryService.readSpecialities();
-  }
 }

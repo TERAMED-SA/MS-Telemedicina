@@ -25,7 +25,7 @@ export class SubscriptionConsumerService implements OnModuleInit {
         const subscription = result.data.Message.Content;
 
         try {
-          await this.subscriptionRepository.create({
+          /* await this.subscriptionRepository.create({
             id: subscription.Id,
             packageId: subscription.PackageId,
             userId: subscription.UserId ?? null,
@@ -42,7 +42,7 @@ export class SubscriptionConsumerService implements OnModuleInit {
             createdAt: new Date(subscription.CreatedAt),
             updatedAt: new Date(subscription.UpdatedAt),
           });
-
+ */
           console.log(`✅ Assinatura ${subscription.Id} salva com sucesso.`);
         } catch (error) {
           console.error('💥 Erro ao salvar a assinatura:', error);

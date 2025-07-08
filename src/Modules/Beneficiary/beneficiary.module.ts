@@ -3,17 +3,17 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { RapidocProviderModule } from 'src/Infra/Providers/Rapidoc/rapidoc.module';
 import { BeneficiaryService } from './beneficiary.service';
 import { RedisProviderModule } from 'src/Infra/Providers/Redis/redis.module';
-import { SubscriptionModule } from 'src/Infra/Providers/RabbitMQ/Subscriptions/subscriptions.module'; // <-- adicione este import
+import { BeneficiaryRepository } from 'src/Infra/Database/beneficiary.repository';
 
 @Module({
   imports: [
     AutomapperModule,
     RapidocProviderModule,
     RedisProviderModule,
-    SubscriptionModule,
   ],
   providers: [
     BeneficiaryService,
+    BeneficiaryRepository
   ],
   exports: [
     BeneficiaryService,

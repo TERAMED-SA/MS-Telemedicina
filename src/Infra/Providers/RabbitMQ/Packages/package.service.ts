@@ -37,7 +37,7 @@ export class PackageConsumerService implements OnModuleInit {
                     : []
               )
               : [];
-            await this.packageRepository.create({
+            /* await this.packageRepository.create({
               id: content.Id,
               name: content.Name,
               price: new Prisma.Decimal(content.Price),
@@ -48,7 +48,7 @@ export class PackageConsumerService implements OnModuleInit {
               createdAt: new Date(content.CreatedAt),
               updatedAt: new Date(content.UpdatedAt),
               description: null
-            });
+            }); */
             console.log('Pacote cadastrado com sucesso!');
           } catch (err) {
             console.error('Erro ao cadastrar pacote:', err);

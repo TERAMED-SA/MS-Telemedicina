@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Package {
+  id            String   @id
+  name          String
+  description   String?
+  price         Decimal
+  currency      String
+  billingPeriod String
+  features      String[]
+  isActive      Boolean
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  subscriptions Subscription[]
+}
+
 model Beneficiary {
   id      String @id @default(uuid())
   name    String
@@ -23,5 +38,28 @@ model Beneficiary {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  external_user_id String         @unique @map("external_user_id")
+  external_user_id String @unique @map("external_user_id")
+  //Subscription     Subscription[]
+}
+
+model Subscription {
+  id                       String  @id
+  packageId                String
+  userId                   String
+  //beneficiary              Beneficiary @relation(fields: [beneficiaryId], references: [external_user_id])
+  status                   String
+  paymentMethod            String?
+  paymentMethodDetails     Json?
+  paymentTransactionId     String?
+  paymentTransactionStatus String?
+  externalRef              String?
+
+  startDate  DateTime
+  endDate    DateTime?
+  renewsAt   DateTime?
+  canceledAt DateTime?
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  package Package @relation(fields: [packageId], references: [id])
 }

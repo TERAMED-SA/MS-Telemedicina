@@ -27,8 +27,6 @@ const CACHE_TTL = 1800;
 export class BeneficiaryService {
   constructor(
     private readonly rapidocService: RapidocBeneficiaryService,
-    private readonly rapidocSchedulingService: RapidocSchedulingService,
-    private readonly subscriptionReadRepository: SubscriptionReadRepository,
     private readonly beneficiaryReadRepository: BeneficiaryRepository,
     @Inject("REDIS_CLIENT") private readonly redis: Redis
   ) { }
@@ -90,10 +88,6 @@ export class BeneficiaryService {
     return result;
   }
 
-  async confirmBeneficiarywithOTP() {
-
-  }
-
   async requestRoomAccess(phoneNumber: string) {
 
     if (!phoneNumber || phoneNumber.length < 8) {
@@ -119,31 +113,5 @@ export class BeneficiaryService {
 
   async reactivateBeneficiary(uuid: string) {
     return await this.rapidocService.reactivateBeneficiary(uuid);
-  }
-
-  async readSpecialities() {
-   
-    const result = await this.rapidocSchedulingService.readSpecialities();
-    return result;
-  }
-
-  async readAvailabilityBySpeciality(specialityId: string) {
-    const result = await this.rapidocSchedulingService.readAvailabilityBySpeciality(specialityId);
-    return result;
-  }
-
-  async readSchedulingByBeneficiary(uuid: string) {
-    const result = await this.rapidocSchedulingService.readSchedulingsByBeneficiary(uuid);
-    return result;
-  }
-
-  async scheduleAppointment(appointmentData: any, userId: string) {
-    const subscription = await this.subscriptionReadRepository.findActiveByUserId(userId);
-
-    if (!subscription) {
-      return new ForbiddenException('Usuário não possui assinatura ativa.');
-    }
-
-    return await this.rapidocSchedulingService.scheduleAppointment(appointmentData);
   }
 }
