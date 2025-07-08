@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post, Put, Delete } from '@nestjs/common';
-import { BeneficiaryService } from './Modules/Beneficiary/beneficiary.service';
-import { BecomeBeneficiaryRequestDto, UpdateBeneficiaryRequestDto } from './Infra/Providers/Rapidoc/dtos/beneficiaries';
+import { BeneficiaryService } from './beneficiary.service';
+import { BecomeBeneficiaryRequestDto, UpdateBeneficiaryRequestDto } from '../../Infra/Providers/Rapidoc/dtos/beneficiaries';
 
 @Controller()
-export class AppController {
+export class BeneficiaryController {
   constructor(private readonly beneficiaryService: BeneficiaryService) {}
 
   @Post('beneficiaries')

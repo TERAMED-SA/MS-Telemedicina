@@ -21,7 +21,15 @@ export class BeneficiaryRepository {
   }
 
   async findById(id: string): Promise<Beneficiary | null> {
-    return this.prisma.beneficiary.findUnique({ where: { id } });
+    const beneficiary = await this.prisma.beneficiary.findFirst({ 
+      where: { 
+        OR: [
+          { id },
+          { external_user_id: id }
+        ]
+      }
+    });
+    return beneficiary;
   }
 
   async findByCpf(cpf: string): Promise<Beneficiary | null> {

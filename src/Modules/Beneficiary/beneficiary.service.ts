@@ -2,33 +2,20 @@ import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import Redis from "ioredis";
 import { BeneficiaryRepository } from "src/Infra/Database/beneficiary.repository";
 import {
-  SubscriptionReadRepository
-} from "src/Infra/Database/subscriptions.repository";
-import {
   BecomeBeneficiaryRequestDto,
-  ReadBeneficiariesResponseDto,
-  ReadBeneficiaryAppointmentsResponseDto,
-  ReadBeneficiaryByCPFResponseDto,
-  ReadBeneficiaryReferralsResponseDto,
   UpdateBeneficiaryRequestDto
 } from "src/Infra/Providers/Rapidoc/dtos/beneficiaries";
 import {
   RapidocBeneficiaryService
 } from "src/Infra/Providers/Rapidoc/services/beneficiaries.service";
-import {
-  RapidocSchedulingService
-} from "src/Infra/Providers/Rapidoc/services/scheduling.service";
 import { generateCPF } from "src/utils/generateCPF";
 import { generateZipCode } from "src/utils/generateZipCode";
-
-const CACHE_TTL = 1800;
 
 @Injectable()
 export class BeneficiaryService {
   constructor(
     private readonly rapidocService: RapidocBeneficiaryService,
-    private readonly beneficiaryReadRepository: BeneficiaryRepository,
-    @Inject("REDIS_CLIENT") private readonly redis: Redis
+    private readonly beneficiaryReadRepository: BeneficiaryRepository
   ) { }
 
   async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string, bi: string }) {
@@ -51,7 +38,6 @@ export class BeneficiaryService {
       birthday: birthday.toISOString(),
     });
 
-    await this.redis.del('beneficiaries:all');
     return result;
   }
 
@@ -82,26 +68,16 @@ export class BeneficiaryService {
   async updateBeneficiary(uuid: string, beneficiary: UpdateBeneficiaryRequestDto) {
     const result = await this.rapidocService.updateBeneficiary(uuid, beneficiary);
 
-    await this.redis.del('beneficiaries:all');
-    await this.redis.del(`beneficiary:cpf:${result.beneficiary.cpf}`);
-
     return result;
   }
 
-  async requestRoomAccess(phoneNumber: string) {
+  async requestRoomAccess(userId: string) {
 
-    if (!phoneNumber || phoneNumber.length < 8) {
-      return new ForbiddenException('Número de telefone inválido.');
-    }
-
-    const beneficiary = await this.beneficiaryReadRepository.findByPhone(phoneNumber);
+    const beneficiary = await this.beneficiaryReadRepository.findById(userId);
 
     if (!beneficiary) {
       return new ForbiddenException('Beneficiário não encontrado.');
     }
-
-    //TODO: Verificar se tem subscricao ativa com acesso a telemedicina
-    //TODO: Fazer pedido na Rapidoc para acesso a sala com o uuid do beneficiário
 
     const result = await this.rapidocService.requestRoomAccess(beneficiary.id);
     return result;

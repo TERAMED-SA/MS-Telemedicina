@@ -22,6 +22,17 @@ model Package {
   subscriptions Subscription[]
 }
 
+model OtpRequest {
+  id          String   @id @default(uuid())
+  phoneNumber String
+  code        String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  verified    Boolean  @default(false)
+  beneficiaryId String
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [external_user_id])
+}
+
 model Beneficiary {
   id      String @id @default(uuid())
   name    String
@@ -37,6 +48,8 @@ model Beneficiary {
   birthDate DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  otp OtpRequest[]
 
   external_user_id String @unique @map("external_user_id")
   //Subscription     Subscription[]
