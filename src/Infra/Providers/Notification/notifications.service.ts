@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { smsValidationSchema } from './validators/sms-validation.schema';
 import { enviroment } from 'src/enviroment';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 @Injectable()
 export class NotificationsService {
@@ -22,8 +22,8 @@ export class NotificationsService {
 
     try {
       await axios.post(
-        `${this.baseUrl}/sms`,
-        [validatedData],
+        this.baseUrl,
+        validatedData,
       );
 
       this.logger.log(`🔔 SMS enviado para ${validatedData.to}: ${validatedData.body}`);
