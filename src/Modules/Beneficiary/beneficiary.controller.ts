@@ -1,11 +1,16 @@
 import { Body, Controller, Get, Param, Post, Put, Delete } from '@nestjs/common';
 import { BeneficiaryService } from './beneficiary.service';
 import { BecomeBeneficiaryRequestDto, UpdateBeneficiaryRequestDto } from '../../Infra/Providers/Rapidoc/dtos/beneficiaries';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Beneficiaries')
 @Controller()
 export class BeneficiaryController {
   constructor(private readonly beneficiaryService: BeneficiaryService) {}
 
+  @ApiOperation({summary:'Cadastrar Beneficiarios'})
+  @ApiResponse({})
+  @ApiBody({type:BecomeBeneficiaryRequestDto})
   @Post('beneficiaries')
   async createBeneficiary(@Body() body: BecomeBeneficiaryRequestDto & { bi: string, id: string }) {
     return this.beneficiaryService.createBeneficiary(body);

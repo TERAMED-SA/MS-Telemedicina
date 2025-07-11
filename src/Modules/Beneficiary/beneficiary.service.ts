@@ -1,4 +1,5 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { error } from "console";
 import { format, parseISO } from "date-fns";
 import Redis from "ioredis";
 import { BeneficiaryRepository } from "src/Infra/Database/beneficiary.repository";
@@ -20,18 +21,15 @@ export class BeneficiaryService {
   ) { }
 
   async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string, bi: string }) {
+    console.log("dados-debug:"+ beneficiary);
     const cpf = generateCPF();
     const zipCode = generateZipCode();
 
-    console.log("BIRTH", beneficiary);
-    
-
     const { birthday: birthdayString, ...beneficiaryWithoutBirthday } = beneficiary;
-
 
     const beneficiaryCreated = await this.beneficiaryReadRepository.create({
       ...beneficiaryWithoutBirthday,
-      birthDate: new Date(`${birthdayString}T00:00:00.000Z`),
+      birthDate: new Date(),
       cpf,
       zipCode,
       external_user_id: beneficiary.id,
