@@ -8,19 +8,19 @@ export class BecomeBeneficiaryRequestDto{
   @ApiProperty({example:'Carlos Antonio Marques'})
   birthday: string;
 
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'925033626'})
   phone: string;
 
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'calosmarqu@gmail.com'})
   email: string;
 
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'Luanda. Talatona'})
   address: string;
 
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'Luanda'})
   city: string;
   
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'Angolano'})
   state: string;
 };
 
