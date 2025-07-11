@@ -48,10 +48,8 @@ export class BeneficiaryService {
 
   async getBeneficiaries() {
 
-    const result = await this.rapidocService.readBeneficiaries();
-    if (!result.success) {
-      return new ForbiddenException('Não foi possível obter a lista de beneficiários.');
-    }
+    const result = await this.beneficiaryReadRepository.findAll()
+   
     return result;
   }
 
