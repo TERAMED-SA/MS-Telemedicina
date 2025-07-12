@@ -1,7 +1,5 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
-import { error } from "console";
 import { format, parseISO } from "date-fns";
-import Redis from "ioredis";
 import { BeneficiaryRepository } from "src/Infra/Database/beneficiary.repository";
 import {
   BecomeBeneficiaryRequestDto,
@@ -12,6 +10,7 @@ import {
 } from "src/Infra/Providers/Rapidoc/services/beneficiaries.service";
 import { generateCPF } from "src/utils/generateCPF";
 import { generateZipCode } from "src/utils/generateZipCode";
+import BeneficiaryInputCoreDto from "./Dtos/BeneficiaryInputCore.dto";
 
 @Injectable()
 export class BeneficiaryService {
@@ -20,13 +19,11 @@ export class BeneficiaryService {
     private readonly beneficiaryReadRepository: BeneficiaryRepository
   ) { }
 
-  async createBeneficiary(beneficiary: BecomeBeneficiaryRequestDto & { id: string, bi: string }) {
+  async createBeneficiary(beneficiary: BeneficiaryInputCoreDto) {
     console.log("dados-debug:"+ beneficiary);
     const cpf = generateCPF();
     const zipCode = generateZipCode();
-
     const { birthday: birthdayString, ...beneficiaryWithoutBirthday } = beneficiary;
-
     const beneficiaryCreated = await this.beneficiaryReadRepository.create({
       ...beneficiaryWithoutBirthday,
       birthDate: new Date(),
@@ -35,21 +32,16 @@ export class BeneficiaryService {
       external_user_id: beneficiary.id,
       bi: beneficiary.bi
     })
-
     const { bi, id, createdAt, updatedAt, external_user_id, birthDate: birthday, ...rest } = beneficiaryCreated;
-
     const result = await this.rapidocService.becomeBeneficiary({
       ...rest,
       birthday: format(parseISO(birthday.toISOString()), 'yyyy/MM/dd').toString().replaceAll('/', '-'),
     });
-
     return result;
   }
 
   async getBeneficiaries() {
-
     const result = await this.beneficiaryReadRepository.findAll()
-   
     return result;
   }
 
@@ -68,9 +60,8 @@ export class BeneficiaryService {
     return result;
   }
 
-  async updateBeneficiary(uuid: string, beneficiary: UpdateBeneficiaryRequestDto) {
+  async updateBeneficiary(uuid:string, beneficiary:UpdateBeneficiaryRequestDto) {
     const result = await this.rapidocService.updateBeneficiary(uuid, beneficiary);
-
     return result;
   }
 
@@ -95,4 +86,5 @@ export class BeneficiaryService {
   async reactivateBeneficiary(uuid: string) {
     return await this.rapidocService.reactivateBeneficiary(uuid);
   }
+
 }

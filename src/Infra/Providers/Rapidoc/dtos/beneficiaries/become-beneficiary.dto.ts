@@ -5,7 +5,7 @@ export class BecomeBeneficiaryRequestDto{
   @ApiProperty({example:'Carlos Antonio Marques'})
   name: string;
 
-  @ApiProperty({example:'Carlos Antonio Marques'})
+  @ApiProperty({example:'2000-01-01'})
   birthday: string;
 
   @ApiProperty({example:'925033626'})
